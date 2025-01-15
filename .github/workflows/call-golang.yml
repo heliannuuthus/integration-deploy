@@ -63,8 +63,7 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.1
           curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.18.2
-          go install github.com/gotesttools/gotestfmt/v2/cmd/gotestfmt@v2.5.0
-          go install github.com/jstemmer/go-junit-report/v2@v2.1.0
+          go install gotest.tools/gotestsum@v1.12.0
 
       - name: cache gomod cache
         if: ${{ steps.cache-restore-golang.outputs.cache-hit != 'true'}}
@@ -110,8 +109,7 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.1
           curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.18.2
-          go install github.com/gotesttools/gotestfmt/v2/cmd/gotestfmt@v2.5.0
-          go install github.com/jstemmer/go-junit-report/v2@v2.1.0
+          go install gotest.tools/gotestsum@v1.12.0
 
       - name: cache gomod cache
         if: ${{ steps.cache-restore-golang.outputs.cache-hit != 'true'}}
@@ -162,8 +160,7 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.1
           curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.18.2
-          go install github.com/gotesttools/gotestfmt/v2/cmd/gotestfmt@v2.5.0
-          go install github.com/jstemmer/go-junit-report/v2@v2.1.0
+          go install gotest.tools/gotestsum@v1.12.0
 
       - name: cache gomod cache
         if: ${{ steps.cache-restore-golang.outputs.cache-hit != 'true'}}
@@ -225,8 +222,7 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.1
           curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.18.2
-          go install github.com/gotesttools/gotestfmt/v2/cmd/gotestfmt@v2.5.0
-          go install github.com/jstemmer/go-junit-report/v2@v2.1.0
+          go install gotest.tools/gotestsum@v1.12.0
 
       - name: cache gomod cache
         if: ${{ steps.cache-restore-golang.outputs.cache-hit != 'true'}}
@@ -266,8 +262,22 @@ jobs:
 
       - name: test
         run: |
-          go test -gcflags="all=-N -l" -coverprofile=build/coverage.out -covermode count -json -v ./... 2>&1 | tee build/test.json | gotestfmt
-          go-junit-report -parser gojson -in build/test.json -out build/report.xml
+          mkdir -p build/test-results
+
+          for dir in $(find . -name "go.mod" -not -path "./vendor/*" -exec dirname {} \;); do
+            module_name=$(basename $dir)
+            echo "Testing module: $module_name"
+            
+            gotestsum --format testname \
+              --junitfile "build/test-results/$module_name-report.xml" \
+              --jsonfile "build/test-results/$module_name-test.json" \
+              --packages="./..." \
+              -- -coverprofile="build/test-results/$module_name-coverage.out" \
+              ./...
+          done
+
+          echo 'mode: count' > build/coverage.out
+          find build/test-results -name '*-coverage.out' -exec tail -n +2 {} \; >> build/coverage.out
       - name: upload targets
         uses: actions/upload-artifact@v4
         with:
