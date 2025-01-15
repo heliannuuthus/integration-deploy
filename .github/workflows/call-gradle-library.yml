@@ -34,7 +34,7 @@ jobs:
           java-version: "17"
           distribution: "temurin"
       - name: setup-gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-home-cache-cleanup: true
 
@@ -63,7 +63,7 @@ jobs:
           java-version: "17"
           distribution: "temurin"
       - name: setup-gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-home-cache-cleanup: true
 
@@ -105,7 +105,7 @@ jobs:
           java-version: "17"
           distribution: "temurin"
       - name: setup-gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-home-cache-cleanup: true
 
